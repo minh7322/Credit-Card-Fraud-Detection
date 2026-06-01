@@ -1,0 +1,62 @@
+\cleardoublepage
+\section*{CH??NG 2. PH??NG PH?P V? X? L? ??C TR?NG}
+\addcontentsline{toc}{section}{\numberline{}CH??NG 2. PH??NG PH?P V? X? L? ??C TR?NG}
+\setcounter{section}{2}
+\setcounter{subsection}{0}
+\setcounter{figure}{0}
+\setcounter{table}{0}
+
+\subsection{Feature engineering}
+
+Pipeline x? l? d? li?u chuy?n c?c bi?n raw th?nh ??c tr?ng s? ph? h?p cho m? h?nh c?y. Gender ???c m? h?a nh? ph?n. Category ???c one-hot encoding v? cardinality th?p. Merchant v? job ???c frequency encoding v? cardinality cao. Tu?i ???c chuy?n th?nh age bin ordinal. Ngo?i ra, b?o c?o t?o th?m ??c tr?ng t? l? nh? \texttt{amt\_vs\_customer\_avg\_30d}.
+
+Sau feature engineering, d? li?u kh?ng c?n c?t object v? c? 43 c?t tr??c khi b? \texttt{unix\_time}. \texttt{unix\_time} ch? d?ng ?? sort v? split theo th?i gian, kh?ng d?ng l?m feature ?? tr?nh m? h?nh h?c tr?c ti?p ch? s? th?i gian.
+
+\subsection{Feature selection}
+
+B?o c?o k?t h?p Mutual Information v? RandomForest importance ?? ch?n ??c tr?ng. Quy t?c l? gi? c?c feature n?m trong top-20 c?a m?t trong hai ranking, sau ?? lo?i c?c feature c? t??ng quan qu? cao.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{cell_60_img_01.png}
+\caption{Mutual Information}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{cell_62_img_01.png}
+\caption{RandomForest importance}
+\end{subfigure}
+\caption{Hai h??ng ranking ??c tr?ng}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{?nh h??ng c?a feature selection}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Feature set} & \textbf{S? feature} & \textbf{PR-AUC} \\
+\midrule
+All features & 41 & 0.9588 \\
+Selected features & 25 & 0.9576 \\
+Delta & -16 & -0.0013 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+K?t qu? cho th?y gi?m 39\% s? feature nh?ng PR-AUC ch? gi?m 0.0013. V? v?y, final feature set g?m 25 feature ???c s? d?ng cho m? h?nh cu?i.
+
+\subsection{X? l? m?t c?n b?ng}
+
+B?o c?o th? hai chi?n l??c ch?nh v?i XGBoost:
+\begin{itemize}
+    \item \textbf{Class weight}: gi? nguy?n ph?n ph?i d? li?u v? d?ng \texttt{scale\_pos\_weight}.
+    \item \textbf{Undersampling}: gi?m l?p majority theo t? l? 10:1 so v?i l?p fraud.
+\end{itemize}
+
+Class weight ???c khuy?n ngh? cho baseline production v? kh?ng l?m m?t th?ng tin t? l?p non-fraud v? ?n ??nh h?n khi ??nh gi? tr?n nhi?u chunk.
+
+\subsection{M? h?nh XGBoost}
+
+XGBoost l? m? h?nh gradient boosting tr?n c?y quy?t ??nh, ph? h?p v?i d? li?u tabular, c? kh? n?ng h?c quan h? phi tuy?n v? t??ng t?c ??c tr?ng. V?i b?i to?n n?y, XGBoost ???c ch?n v? ??t PR-AUC t?t nh?t trong c?c m? h?nh th? nghi?m ban ??u.

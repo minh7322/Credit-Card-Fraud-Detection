@@ -1,0 +1,95 @@
+\cleardoublepage
+\section*{CH??NG 3. TH?C NGHI?M V? K?T QU? M? H?NH}
+\addcontentsline{toc}{section}{\numberline{}CH??NG 3. TH?C NGHI?M V? K?T QU? M? H?NH}
+\setcounter{section}{3}
+\setcounter{subsection}{0}
+\setcounter{figure}{0}
+\setcounter{table}{0}
+
+\subsection{Chi?n l??c ??nh gi?}
+
+Do d? li?u m?t c?n b?ng m?nh, accuracy kh?ng ???c s? d?ng l?m metric ch?nh. B?o c?o d?ng PR-AUC ?? ??nh gi? kh? n?ng ranking fraud v? F1-score ?? ??nh gi? k?t qu? sau khi ch?n threshold. Threshold ???c ch?n tr?n validation set theo c?ng th?c:
+\begin{equation}
+    \tau^* = \arg\max_{\tau} F1(y_{val}, \hat{p}_{val} \ge \tau).
+\end{equation}
+
+\subsection{So s?nh m? h?nh ban ??u}
+
+\begin{table}[H]
+\centering
+\caption{So s?nh m? h?nh v? chi?n l??c imbalance tr?n chunk 01}
+\begin{tabular}{llrr}
+\toprule
+\textbf{Name} & \textbf{Strategy} & \textbf{Train size} & \textbf{Val PR-AUC} \\
+\midrule
+\texttt{rf\_baseline} & baseline & 343,209 & 0.9417 \\
+\texttt{rf\_class\_weight} & class weight & 343,209 & 0.9444 \\
+\texttt{rf\_undersample} & undersample & 39,886 & 0.9587 \\
+\texttt{xgb\_baseline} & baseline & 343,209 & 0.9655 \\
+\texttt{xgb\_class\_weight} & class weight & 343,209 & 0.9655 \\
+\texttt{xgb\_undersample} & undersample & 39,886 & 0.9724 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hai m? h?nh t?t nh?t ???c ch?n ?? Optuna tuning l? \texttt{xgb\_undersample} v? \texttt{xgb\_class\_weight}.
+
+\subsection{Hyperparameter tuning}
+
+\begin{table}[H]
+\centering
+\caption{Best tuned XGBoost parameters}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+\textbf{Model} & \textbf{n\_est} & \textbf{depth} & \textbf{lr} & \textbf{subsample} & \textbf{colsample} & \textbf{child} & \textbf{alpha} & \textbf{lambda} & \textbf{gamma} \\
+\midrule
+\texttt{xgb\_undersample} & 150 & 8 & 0.016664 & 0.948150 & 0.781684 & 6 & 0.189588 & 0.007976 & 0.660841 \\
+\texttt{xgb\_class\_weight} & 400 & 6 & 0.015384 & 0.880095 & 0.754347 & 1 & 0.155126 & 0.005929 & 3.799895 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{K?t qu? cu?i tr?n chunk 01}
+
+\begin{table}[H]
+\centering
+\caption{Final evaluation tr?n test set c?a chunk 01}
+\begin{tabular}{lrrrrrrr}
+\toprule
+\textbf{Model} & \textbf{PR-AUC} & \textbf{Threshold} & \textbf{F1} & \textbf{TN} & \textbf{FP} & \textbf{FN} & \textbf{TP} \\
+\midrule
+\texttt{xgb\_undersample} & 0.9614 & 0.7484 & 0.9564 & 106,356 & 0 & 75 & 823 \\
+\texttt{xgb\_class\_weight} & 0.9623 & 0.9722 & 0.9564 & 106,356 & 0 & 75 & 823 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+C? hai m? h?nh ??u ??t precision 1.0000 v? recall 0.9165 cho l?p fraud tr?n test set chunk 01. Tuy nhi?n, k?t qu? n?y c?n ???c ki?m tra tr?n c?c chunk t??ng lai ?? ??nh gi? t?nh ?n ??nh theo th?i gian.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{cell_88_img_01.png}
+\caption{Precision--Recall curve tr?n chunk 01}
+\end{figure}
+
+\subsection{??nh gi? tr?n c?c chunk 02--16}
+
+\begin{table}[H]
+\centering
+\caption{Mean cross-chunk performance, lo?i chunk kh?ng c? fraud trong test}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Model} & \textbf{Mean test PR-AUC} & \textbf{Mean F1} & \textbf{Best F1 diagnostic} \\
+\midrule
+\texttt{xgb\_class\_weight} & 0.8025 & 0.6031 & 0.7935 \\
+\texttt{xgb\_undersample} & 0.7736 & 0.5957 & 0.7814 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{xgb_chunks_02_16_drift_aware_metrics.png}
+\caption{PR-AUC, F1 v? ?? gi?m PR-AUC theo chunk}
+\end{figure}
